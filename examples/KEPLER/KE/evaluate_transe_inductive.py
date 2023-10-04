@@ -1,4 +1,7 @@
 import argparse
+import sys
+sys.path.append("/projects/KEPLER/graphvite/python/")
+
 import graphvite as gv
 import graphvite.application as gap
 import numpy as np
@@ -6,6 +9,8 @@ import json
 from tqdm import tqdm
 
 def main():
+    print(gv.__file__)
+    print(gap.__file__)
     parser = argparse.ArgumentParser()
     parser.add_argument('--entity_embeddings', help='numpy of entity embeddings')
     parser.add_argument('--relation_embeddings', help='numpy of relation embeddings')
@@ -61,7 +66,7 @@ def main():
     app.relation2id = relation2id
     
     print('start evaluation ......')
-    app.evaluate('link_prediction', file_name=args.dataset, filter_files=[args.dataset])
+    print(app.evaluate('entity_prediction', target="tail", k=3, backend="torch", file_name=args.dataset))#, filter_files=[args.dataset])
 
 if __name__ == '__main__':
     main()

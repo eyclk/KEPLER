@@ -160,26 +160,7 @@ class Dataset(object):
             if member is None:
                 logger.info("extracting %s to %s" % (self.relpath(zip_file), self.relpath(save_file)))
                 with tarfile.open(zip_file, "r") as fin:
-                    def is_within_directory(directory, target):
-                        
-                        abs_directory = os.path.abspath(directory)
-                        abs_target = os.path.abspath(target)
-                    
-                        prefix = os.path.commonprefix([abs_directory, abs_target])
-                        
-                        return prefix == abs_directory
-                    
-                    def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
-                    
-                        for member in tar.getmembers():
-                            member_path = os.path.join(path, member.name)
-                            if not is_within_directory(path, member_path):
-                                raise Exception("Attempted Path Traversal in Tar File")
-                    
-                        tar.extractall(path, members, numeric_owner=numeric_owner) 
-                        
-                    
-                    safe_extract(fin, save_file)
+                    fin.extractall(save_file)
             else:
                 logger.info("extracting %s from %s to %s" % (member, self.relpath(zip_file), self.relpath(save_file)))
                 with tarfile.open(zip_file, "r").extractfile(member) as fin, open(save_file, "wb") as fout:
@@ -430,8 +411,8 @@ class BlogCatalog(Dataset):
         super(BlogCatalog, self).__init__(
             "blogcatalog",
             urls={
-                "graph": "http://socialcomputing.asu.edu/uploads/1283153973/BlogCatalog-dataset.zip",
-                "label": "http://socialcomputing.asu.edu/uploads/1283153973/BlogCatalog-dataset.zip",
+                "graph": "https://www.dropbox.com/s/cf21ouuzd563cqx/BlogCatalog-dataset.zip?dl=1",
+                "label": "https://www.dropbox.com/s/cf21ouuzd563cqx/BlogCatalog-dataset.zip?dl=1",
                 "train": [], # depends on `graph`
                 "valid": [], # depends on `graph`
                 "test": [] # depends on `graph`
@@ -573,7 +554,7 @@ class Wikipedia(Dataset):
         super(Wikipedia, self).__init__(
             "wikipedia",
             urls={
-                "graph": "https://www.dropbox.com/s/mwt4uu1qu9fflfk/enwiki-latest-pages-articles-sentences.txt.gz?dl=1"
+                "graph": "https://www.dropbox.com/s/q6w950e5f7g7ax8/enwiki-latest-pages-articles-sentences.txt.gz?dl=1"
             }
         )
 

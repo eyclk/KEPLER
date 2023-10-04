@@ -1,0 +1,8 @@
+__pycache__
+PKG-INFO
+SOURCES.txt
+entry_points.txt
+*.pt
+*.so
+*.o
+checkpoints_*/

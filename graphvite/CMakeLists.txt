@@ -16,7 +16,7 @@ project(graphvite LANGUAGES CXX CUDA)
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 include(FindCUDA)
-
+include_directories(/home/audp/anaconda3/envs/kepler/include)
 find_package(Glog)
 find_package(GFlags)
 find_package(PythonLibsNew REQUIRED)
@@ -26,7 +26,7 @@ find_package(pybind11 REQUIRED)
 get_filename_component(CUDA_ROOT ${CMAKE_CUDA_COMPILER} DIRECTORY)
 get_filename_component(CUDA_ROOT ${CUDA_ROOT} DIRECTORY)
 if (NOT ALL_ARCH)
-    cuda_select_nvcc_arch_flags(CUDA_ARCH Auto)
+    cuda_select_nvcc_arch_flags(CUDA_ARCH 8.7)
 else()
     cuda_select_nvcc_arch_flags(CUDA_ARCH 3.5 5.0 6.0 7.0)
 endif()
@@ -88,28 +88,31 @@ else()
 endif()
 
 # faiss
-# if (NOT FAISS_PATH)
-#     ExternalProject_Add(faiss
-#             GIT_REPOSITORY      https://github.com/facebookresearch/faiss.git
-#             UPDATE_DISCONNECTED ${SKIP_UPDATE}
-#             PREFIX              faiss
-#             SOURCE_DIR          ${EXTERNAL_DIR}/faiss
-#             BINARY_DIR          ${EXTERNAL_DIR}/faiss
-#             INSTALL_DIR         ${PROJECT_BINARY_DIR}/faiss
-#             CONFIGURE_COMMAND   test -e makefile.inc ||
-#                                 ${EXTERNAL_DIR}/faiss/configure --with-cuda=${CUDA_ROOT} --with-cuda-arch=${CUDA_ARCH}
-#             BUILD_COMMAND       test -e libfaiss.so || make -j
-#             INSTALL_COMMAND     test -e ${PROJECT_BINARY_DIR}/faiss/include/faiss/gpu/GpuIndexFlat.h ||
-#                                 make install prefix=${PROJECT_BINARY_DIR}/faiss)
-#     include_directories(${PROJECT_BINARY_DIR}/faiss/include)
-#     link_directories(${PROJECT_BINARY_DIR}/faiss/lib)
-#     set(FAISS_LIBRARY ${PROJECT_BINARY_DIR}/faiss/lib/libfaiss.so)
-# else()
-#     get_filename_component(FAISS_PARENT ${FAISS_PATH} DIRECTORY)
-#     include_directories(${FAISS_PARENT})
-#     link_directories(${FAISS_PATH})
-#     set(FAISS_LIBRARY ${FAISS_PATH}/libfaiss.so)
-# endif()
+if (NOT FAISS_PATH)
+    if (NOT NO_FAISS)
+        ExternalProject_Add(faiss
+                GIT_REPOSITORY      https://github.com/facebookresearch/faiss.git
+                GIT_TAG             v1.6.1
+                UPDATE_DISCONNECTED ${SKIP_UPDATE}
+                PREFIX              faiss
+                SOURCE_DIR          ${EXTERNAL_DIR}/faiss
+                BINARY_DIR          ${EXTERNAL_DIR}/faiss
+                INSTALL_DIR         ${PROJECT_BINARY_DIR}/faiss
+                CONFIGURE_COMMAND   test -e makefile.inc ||
+                                    ${EXTERNAL_DIR}/faiss/configure --with-cuda=${CUDA_ROOT} --with-cuda-arch=${CUDA_ARCH}
+                BUILD_COMMAND       test -e libfaiss.so || make -j
+                INSTALL_COMMAND     test -e ${PROJECT_BINARY_DIR}/faiss/include/faiss/gpu/GpuIndexFlat.h ||
+                                    make install prefix=${PROJECT_BINARY_DIR}/faiss)
+        include_directories(${PROJECT_BINARY_DIR}/faiss/include)
+        link_directories(${PROJECT_BINARY_DIR}/faiss/lib)
+        set(FAISS_LIBRARY ${PROJECT_BINARY_DIR}/faiss/lib/libfaiss.so)
+    endif()
+else()
+    get_filename_component(FAISS_PARENT ${FAISS_PATH} DIRECTORY)
+    include_directories(${FAISS_PARENT})
+    link_directories(${FAISS_PATH})
+    set(FAISS_LIBRARY ${FAISS_PATH}/libfaiss.so)
+endif()
 
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
@@ -125,18 +128,20 @@ set(CMAKE_CUDA_FLAGS_DEBUG "-g -G")
 set(CMAKE_CUDA_FLAGS_RELEASE "-O3")
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} ${CUDA_ARCH}")
 
-if (FAST_COMPILE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFAST_COMPILE")
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -DFAST_COMPILE")
-endif()
+foreach (MACRO FAST_COMPILE NO_FAISS)
+    if (${${MACRO}})
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D${MACRO}")
+        set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -D${MACRO}")
+    endif()
+endforeach()
 
 # output directory
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 # symbolic link to faiss
-# file(MAKE_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
-# execute_process(COMMAND ln -sf ${FAISS_LIBRARY} ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libfaiss.so)
+file(MAKE_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+execute_process(COMMAND ln -sf ${FAISS_LIBRARY} ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libfaiss.so)
 
 # project directories
 include_directories(${PYTHON_INCLUDE_DIRS})

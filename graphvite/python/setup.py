@@ -22,12 +22,12 @@ from setuptools import setup, find_packages
 from graphvite import __version__, lib_path, lib_file
 
 name = "graphvite"
-# faiss_file = os.path.join(lib_path, "libfaiss.so")
+faiss_file = os.path.join(lib_path, "libfaiss.so")
 project_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 # library files
 install_path = os.path.join(name, "lib")
-data_files = [(install_path, [lib_file])]
+data_files = [(install_path, [lib_file, faiss_file])]
 # configuration files
 for path, dirs, files in os.walk(os.path.join(project_path, "config")):
     install_path = os.path.join(name, os.path.relpath(path, project_path))
@@ -37,7 +37,7 @@ for path, dirs, files in os.walk(os.path.join(project_path, "config")):
 setup(
     name=name,
     version=__version__,
-    description="",
+    description="A general and high-performance graph embedding system for various applications",
     packages=find_packages(),
     data_files=data_files,
     entry_points={"console_scripts": ["graphvite = graphvite.cmd:main"]},

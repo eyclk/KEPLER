@@ -32,8 +32,6 @@ from .. import lib, cfg, auto
 from .. import graph, solver
 from ..util import assert_in, monitor, SharedNDArray
 
-from tqdm import tqdm
-
 logger = logging.getLogger(__name__)
 
 
@@ -474,7 +472,6 @@ def linear_classification(args):
         return torch.as_tensor(new_indexes), torch.as_tensor(new_labels)
 
     embeddings, labels, portion, normalization, times, patience, gpu = args
-    embeddings = np.asarray(embeddings)
     num_sample, num_class = labels.shape
     num_train = int(num_sample * portion)
 
@@ -591,6 +588,7 @@ class KnowledgeGraphApplication(ApplicationMixin):
         - ComplEx (`Complex Embeddings for Simple Link Prediction`_)
         - SimplE (`SimplE Embedding for Link Prediction in Knowledge Graphs`_)
         - RotatE (`RotatE: Knowledge Graph Embedding by Relational Rotation in Complex Space`_)
+        - QuatE (`Quaternion Knowledge Graph Embeddings`)
 
     .. _Translating Embeddings for Modeling Multi-relational Data:
         http://papers.nips.cc/paper/5071-translating-embeddings-for-modeling-multi-relational-data.pdf
@@ -602,6 +600,8 @@ class KnowledgeGraphApplication(ApplicationMixin):
         https://papers.nips.cc/paper/7682-simple-embedding-for-link-prediction-in-knowledge-graphs.pdf
     .. _RotatE\: Knowledge Graph Embedding by Relational Rotation in Complex Space:
         https://arxiv.org/pdf/1902.10197.pdf
+    .. _Quaternion Knowledge Graph Embeddings:
+        https://papers.nips.cc/paper/8541-quaternion-knowledge-graph-embeddings.pdf
 
     Parameters:
         dim (int): dimension of embeddings
@@ -611,7 +611,8 @@ class KnowledgeGraphApplication(ApplicationMixin):
         index_type (dtype, optional): type of graph indexes
 
     Note:
-        The implementation of TransE, DistMult and ComplEx, SimplE are slightly different from their original papers.
+        The implementation of TransE, DistMult, ComplEx, SimplE and QuatE are slightly different from their original
+        papers.
         The loss function and the regularization term generally follow `this repo`_.
         Self-adversarial negative sampling is also adopted in these models like RotatE.
 
@@ -642,7 +643,7 @@ class KnowledgeGraphApplication(ApplicationMixin):
         self.solver.entity_embeddings[:] = model.solver.entity_embeddings[entity_mapping]
         self.solver.relation_embeddings[:] = model.solver.relation_embeddings[relation_mapping]
 
-    def entity_prediction(self, H=None, R=None, T=None, file_name=None, save_file=None, target="tail", k=10,
+    def entity_prediction(self, H=None, R=None, T=None, file_name=None, save_file=None, target="tail", k=3,
                           backend=cfg.backend):
         """
         Predict the distribution of missing entity or relation for triplets.
@@ -660,6 +661,8 @@ class KnowledgeGraphApplication(ApplicationMixin):
         Return:
             list of list of tuple: top-k recalls for each triplet, if save file is not provided
         """
+
+        # entity prediction
         def torch_predict():
             import torch
 
@@ -680,6 +683,7 @@ class KnowledgeGraphApplication(ApplicationMixin):
             results = self.gpu_map(triplet_prediction, settings)
             return sum(results, [])
 
+        # entity prediction
         def graphvite_predict():
             num_entity = len(entity2id)
             batch_size = self.get_batch_size(num_entity)
@@ -741,10 +745,8 @@ class KnowledgeGraphApplication(ApplicationMixin):
         if T is None:
             target = "tail"
 
-        # entity2id = self.graph.entity2id
-        # relation2id = self.graph.relation2id
-        entity2id = self.entity2id
-        relation2id = self.relation2id
+        entity2id = self.graph.entity2id
+        relation2id = self.graph.relation2id
         num_sample = len(R)
         new_H = np.zeros(num_sample, dtype=np.uint32)
         new_T = np.zeros(num_sample, dtype=np.uint32)
@@ -757,8 +759,9 @@ class KnowledgeGraphApplication(ApplicationMixin):
         R = np.asarray(new_R, dtype=np.uint32)
         T = np.asarray(new_T, dtype=np.uint32)
 
+        # entity prediction
         if backend == "graphvite":
-            recalls = graphvite_predict()
+            recalls = graphvite_predict() # SEGMENTATION FAULT VERIYOR
         else:
             recalls = torch_predict()
 
@@ -834,7 +837,7 @@ class KnowledgeGraphApplication(ApplicationMixin):
                 batch_size = self.get_batch_size(num_entity)
             rankings = []
 
-            for i in tqdm(range(0, fast_mode, batch_size)):
+            for i in range(0, fast_mode, batch_size):
                 batch_h = H[i: i + batch_size]
                 batch_r = R[i: i + batch_size]
                 batch_t = T[i: i + batch_size]
@@ -847,8 +850,7 @@ class KnowledgeGraphApplication(ApplicationMixin):
                 if target == "both":
                     positives = np.asarray([batch_h, batch_t]).transpose()
                     positives = positives.ravel()
-
-                scores = self.solver.predict(batch)
+                scores = self.solver.predict(batch) ### Burada segmentation fault (core dumped)
                 scores = scores.reshape(-1, num_entity)
                 truths = scores[range(len(positives)), positives]
                 ranking = np.sum((scores >= truths[:, np.newaxis]) * masks, axis=1)
@@ -907,10 +909,8 @@ class KnowledgeGraphApplication(ApplicationMixin):
             filter_R = []
             filter_T = []
 
-        # entity2id = self.graph.entity2id
-        # relation2id = self.graph.relation2id
-        entity2id = self.entity2id
-        relation2id = self.relation2id
+        entity2id = self.graph.entity2id
+        relation2id = self.graph.relation2id
         new_H, new_R, new_T = self.name_map((entity2id, relation2id, entity2id), (H, R, T))
         logger.info("effective triplets: %d / %d" % (len(new_H), len(H)))
         H = np.asarray(new_H, dtype=np.uint32)
@@ -936,7 +936,7 @@ class KnowledgeGraphApplication(ApplicationMixin):
         T = T[indexes]
 
         if backend == "graphvite":
-            rankings = graphvite_predict()
+            rankings = graphvite_predict() # SEGMENTATION FAULT VERIYOR
         elif backend == "torch":
             rankings = torch_predict()
 
@@ -964,7 +964,7 @@ class KnowledgeGraphApplication(ApplicationMixin):
         return batch_size
 
     def generate_one_vs_rest(self, H, R, T, num_entity, target="both"):
-        one = np.ones(num_entity, dtype=np.bool)
+        one = np.ones(num_entity, dtype=bool)
         all = np.arange(num_entity, dtype=np.uint32)
         batches = []
 
@@ -975,11 +975,12 @@ class KnowledgeGraphApplication(ApplicationMixin):
             if target == "tail" or target == "both":
                 batch = np.asarray([h * one, all, r * one]).transpose()
                 batches.append(batch)
+
         batches = np.concatenate(batches)
         return batches
 
     def generate_mask(self, H, R, T, exclude_H, exclude_T, num_entity, target="both"):
-        one = np.ones(num_entity, dtype=np.bool)
+        one = np.ones(num_entity, dtype=bool)
         masks = []
 
         for h, r, t in zip(H, R, T):
@@ -1005,8 +1006,6 @@ def triplet_prediction(args):
 
     entity_embeddings, relation_embeddings, H, R, T, \
     exclude_H, exclude_T, target, k, score_function, margin, device = args
-    entity_embeddings = np.asarray(entity_embeddings)
-    relation_embeddings = np.asarray(relation_embeddings)
     num_entity = len(entity_embeddings)
     score_function = LinkPredictor(score_function, entity_embeddings, relation_embeddings, entity_embeddings,
                                    margin=margin)

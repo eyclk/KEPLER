@@ -217,13 +217,13 @@ class MLMetKETask(FairseqTask):
 
     def load_KE_dataset(self, split, kedata_path, epoch=0, combine=False):
         paths = kedata_path.split(':')
+        # print(paths)
         assert len(paths) > 0
-        data_path = paths[epoch % len(paths)]
+        data_path = paths[epoch % len(paths)] # BURASI NEDEN BOYLE? SADECE TEK BIR PARCAYI ALIYOR?
         def get_path(type):
             return os.path.join(data_path,type,split)
         def desc_dataset(type, dictionary, relation_desc=None):
             now_path=get_path(type)
-            #print(now_path)
             dataset=data_utils.load_indexed_dataset(
                 now_path,
                 dictionary,
@@ -303,8 +303,10 @@ class MLMetKETask(FairseqTask):
         return dataset
 
     def load_dataset(self, split, epoch=0, combine=False):
+        print("| LOADING MLM DATASET...")
         MLMdataset=self.load_MLM_dataset(split,epoch,combine)
         # First KE data
+        print("| LOADING KE DATASET...")
         KEdataset=self.load_KE_dataset(split,self.args.KEdata, epoch,combine)
         # Second KE data
         if self.args.double_ke:

@@ -11,7 +11,7 @@ import numpy as np
 import torch
 
 from . import data_utils
-
+torch.multiprocessing.set_sharing_strategy('file_system')
 
 class CountingIterator(object):
     """Wrapper around an iterable that maintains the iteration count.

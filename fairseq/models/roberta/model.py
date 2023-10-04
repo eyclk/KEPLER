@@ -384,7 +384,12 @@ class RobertaKnowledgeEmbeddingHead(nn.Module):
         pScores = (self.score_func(heads_r, relations, tails) + self.score_func(heads, relations, tails_r)) / 2.0
         nHScores = self.score_func(nHeads, relations, tails_r)
         nTScores = self.score_func(heads_r, relations, nTails)
-        nScores = torch.cat((nHScores, nTScores), dim=1) #check the shape
+
+        USE_NHEADS = False
+        if USE_NHEADS:
+            nScores = torch.cat((nHScores, nTScores), dim=1) #check the shape
+        else:
+            nScores = nTScores
         #print("Pscore",pScores)
         #print("Nscore",nScores)
         return pScores, nScores

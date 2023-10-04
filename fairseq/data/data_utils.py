@@ -174,11 +174,11 @@ def filter_by_size(indices, size_fn, max_positions, raise_exception=False):
             ).format(ignored[0], size_fn(ignored[0]), max_positions))
         yield idx
 
-    if len(ignored) > 0:
-        print((
-            '| WARNING: {} samples have invalid sizes and will be skipped, '
-            'max_positions={}, first few sample ids={}'
-        ).format(len(ignored), max_positions, ignored[:10]))
+    # if len(ignored) > 0:
+    #     print((
+    #         '| WARNING: {} samples have invalid sizes and will be skipped, '
+    #         'max_positions={}, first few sample ids={}'
+    #     ).format(len(ignored), max_positions, ignored[:10]))
 
 
 def batch_by_size(

@@ -23,7 +23,7 @@
 
 #include "bind.h"
 
-const std::string version = "0.2.1";
+const std::string version = "0.2.2";
 
 PYBIND11_MODULE(libgraphvite, module) {
     py::options options;
@@ -51,7 +51,6 @@ PYBIND11_MODULE(libgraphvite, module) {
 
     pyGraphSolver<128, float, unsigned int>(solver, "GraphSolver");
     pyGraphSolver<768, float, unsigned int>(solver, "GraphSolver");
-    pyGraphSolver<200, float, unsigned int>(solver, "GraphSolver");
 #ifndef FAST_COMPILE
     pyGraphSolver<32, float, unsigned int>(solver, "GraphSolver");
     pyGraphSolver<64, float, unsigned int>(solver, "GraphSolver");
@@ -63,7 +62,6 @@ PYBIND11_MODULE(libgraphvite, module) {
     pyKnowledgeGraphSolver<512, float, unsigned int>(solver, "KnowledgeGraphSolver");
     pyKnowledgeGraphSolver<1024, float, unsigned int>(solver, "KnowledgeGraphSolver");
     pyKnowledgeGraphSolver<2048, float, unsigned int>(solver, "KnowledgeGraphSolver");
-    pyKnowledgeGraphSolver<200, float, unsigned int>(solver, "KnowledgeGraphSolver");
     pyKnowledgeGraphSolver<768, float, unsigned int>(solver, "KnowledgeGraphSolver");
 #ifndef FAST_COMPILE
     pyKnowledgeGraphSolver<32, float, unsigned int>(solver, "KnowledgeGraphSolver");

@@ -22,9 +22,9 @@ if __name__=='__main__':
             for idx, line in enumerate(lines):
                 data = line.split('\t')
                 assert len(data) >= 2
-                assert data[0].startswith('Q')
+                #assert (data[0].startswith('Q') or data[0].startswith('S'))
                 desc = '\t'.join(data[1:]).strip()
-                if getNum(data[0])>1000:
+                if data[0].startswith('Q') and getNum(data[0])>1000:
                     continue
                 fout.write(desc+"\n")
                 Qid[data[0]] = Cnt#idx
@@ -36,7 +36,8 @@ if __name__=='__main__':
                 for line in lines:
                     data = line.strip().split('\t')
                     assert len(data) == 3
-                    if getNum(data[0])>1000 or getNum(data[2]) > 1000:
+                    if (data[0].startswith('Q') and getNum(data[0])>1000) or \
+                        (data[2].startswith('Q') and getNum(data[2]) > 1000):
                         continue
                     if data[1] not in Pid:
                         Pid[data[1]] = len(Pid)
