@@ -211,26 +211,57 @@ We release the pre-trained [checkpoint for KE tasks](https://cloud.tsinghua.edu.
 
 First, install the `graphvite` package in[`./graphvite`](/graphvite) following its instructions. [GraphVite](https://github.com/DeepGraphLearning/graphvite) is an fast toolkit for network embedding and knowledge embedding, and we made some modifications on top of them.
 
+------------------------------------------
+
+**For citation prediction task:** Acquire the necessary Qdesc txt file with [`convert_alt_limit.py`](examples/KEPLER/Pretrain/convert_alt_limit.py). The arguments are as following:
+
+* `--text`: The corpus file from the dataset. For our work, it should contain contexts (heads) and references (tails).
+* `--train`: The training split of the context-reference triples.
+* `--valid`: The validation split of the context-reference triples.
+* `--converted_text`: The output txt file that contains the converted data from the corpus.
+* `--converted_train`: The output file that contains the converted training split.
+* `--converted_valid`: The output file that contains the converted validation split.
+
+**For citation prediction task:** Acquire the necessary Qdesc bpe file with [`multiprocessing_bpe_encoder.py`](examples/roberta/multiprocessing_bpe_encoder.py). The arguments are as following:
+
+* `--encoder-json`: The encoder.json file inside gpt2_bpe folder. This folder should have already been created during the initial preprocessing of the dataset. This contents of this folder works as the tokenizer of the data. Alternative link to the file: https://dl.fbaipublicfiles.com/fairseq/gpt2_bpe/encoder.json
+* `--vocab-bpe`: The vocab.bpe file inside the same gpt2_bpe folder explained above. Alternative link to the file: https://dl.fbaipublicfiles.com/fairseq/gpt2_bpe/vocab.bpe
+* `--inputs`: The file that comes from the converted_text parameter of the previous step.
+* `--outputs`: The output bpe file that has been converted from the file given to the --inputs.
+* `--keep-empty`: Use this parameter directly without any input.
+* `--workers`: Use this parameter to set the number of workers while the code is working. We have observed that this works with 10 as input.
+
+**For citation prediction task:** Acquire the entity2id.json and relation2id.json files with [`convert_for_2id_files.py`](examples/KEPLER/Pretrain/convert_for_2id_files.py). This is almost the same code as the other convert one. However, this also created the 2id files at the end. Converted_text file from this code is incorrrect. So, make sure to rename it something different, so that it does not overwrite the correct one. This code always writes out its 2id files to a folder called "2id_files". So, make sure to create a new folder with this name. The arguments are as following:
+
+* `--text`: The corpus file from the dataset. For our work, it should contain contexts (heads) and references (tails).
+* `--train`: The training split of the context-reference triples.
+* `--valid`: The validation split of the context-reference triples.
+* `--converted_text`: The output txt file that contains the converted data from the corpus. --> Name it different from before. This output file is unimportant.
+* `--converted_train`: The output file that contains the converted training split. --> Name it different from before. This output file is unimportant.
+* `--converted_valid`: The output file that contains the converted validation split. --> Name it different from before. This output file is unimportant.
+
+------------------------------------------
+
 Generate the entity embeddings and relation embeddings with[`generate_embeddings.py`](examples/KEPLER/KE/generate_embeddings.py). The arguments are as following:
 
-* `--data`: the entity decription data, a single file, each line is an entity description. It should be BPE encoded and binarized like introduced in the [**Preprocessing for KE data**](#KEpre)
+* `--data`: the entity decription data, a single file, each line is an entity description. It should be BPE encoded and binarized like introduced in the [**Preprocessing for KE data**](#KEpre) **--> For our task, it shouuld be the bpe file acquired after the steps above.**
 * `--ckpt_dir`: path of the KEPLER checkpoint.
 * `--ckpt`: filename of the KEPLER checkpoint.
-* `--dict`: path to the[`dict.txt`](https://dl.fbaipublicfiles.com/fairseq/gpt2_bpe/dict.txt) file.
+* `--dict`: path to the[`dict.txt`](https://dl.fbaipublicfiles.com/fairseq/gpt2_bpe/dict.txt) file. **You should also place this dict.txt file inside the directory that contains the checkpoint as well. Othewrwise the code fails to find the dict.txt file even if this parameter is given correctly.**
 * `--ent_emb`: filename to dump entity embeddings (in numpy format).
 * `--rel_emb`: filename to dump relation embeddings (in numpy format).
-* `--batch_size`: batch size used in inference.
+* `--batch_size`: batch size used in inference. **--> This can be 16, 32, 64, etc. for our task.**
 
-Then use [`evaluate_transe_transductive.py`](examples/KEPLER/KE/evaluate_transe_transductive.py) and [ `ke_tool/evaluate_transe_inductive.py`](examples/KEPLER/KE/evaluate_transe_inductive.py) for KE evaluation. The arguments are as following:
+Then use [`evaluate_transe_transductive.py`](examples/KEPLER/KE/evaluate_transe_transductive.py) and [ `ke_tool/evaluate_transe_inductive.py`](examples/KEPLER/KE/evaluate_transe_inductive.py) for KE evaluation. **For our task, we only need to use the inductive code.** The arguments are as following:
 
 * `--entity_embeddings`: a numpy file storing the entity embeddings.
 * `--relation_embeddings`: a numpy file storing the relation embeddings.
-* `--dim`: the dimension of the relation and entity embeddings.
+* `--dim`: the dimension of the relation and entity embeddings. **--> For our task, this should be 768.**
 * `--entity2id`: a json file that maps entity names (in the dataset) to the ids in the entity embedding numpy file, where the key is the entity names in the dataset, and the value is the id in the numpy file.
 * `--relation2id`: a json file that maps relation names (in the dataset) to the ids in the relation embedding numpy file.
 * `--dataset`: the test data file.
-* `--train_dataset`: the training data file (only for transductive setting).
-* `--val_dataset`: the validation data file (only for transductive setting).
+* `--train_dataset`: the training data file (only for transductive setting). **--> Unnecessary for our task.**
+* `--val_dataset`: the validation data file (only for transductive setting). **--> Unnecessary for our task.**
 
 
 ## Citation
