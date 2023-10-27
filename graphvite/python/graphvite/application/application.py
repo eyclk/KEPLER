@@ -126,6 +126,8 @@ class ApplicationMixin(object):
             for metric, value in sorted(result.items()):
                 logger.warning("%s: %g" % (metric, value))
 
+        with open('eval_result.pkl', 'wb') as er:
+            pickle.dump(result, er)
         return result
 
     @monitor.time

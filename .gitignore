@@ -6,3 +6,4 @@ entry_points.txt
 *.so
 *.o
 checkpoints_*/
+examples/KEPLER/KE/files_for_inductive_cite/*.npy

@@ -6,6 +6,7 @@ import graphvite as gv
 import graphvite.application as gap
 import numpy as np
 import json
+import pickle
 from tqdm import tqdm
 
 def main():
@@ -66,7 +67,26 @@ def main():
     app.relation2id = relation2id
     
     print('start evaluation ......')
-    print(app.evaluate('entity_prediction', target="tail", k=3, backend="torch", file_name=args.dataset))#, filter_files=[args.dataset])
+    print(app.evaluate('entity_prediction', target="tail", k=15, backend="torch", file_name=args.dataset))#, filter_files=[args.dataset])
+
+def get_mrr_score():
+    with open('eval_result.pkl', 'rb') as file:
+        predictions = pickle.load(file)
+
+    with open('files_for_inductive_cite/citation_triples_test.txt', "r") as file:
+        ground_truths = [line.rstrip().split("\t")[2] for line in file]
+
+    print(f'Ground:{len(ground_truths)} - Predictions:{len(predictions)} ')
+
+    mrr_score = 0.0
+    for i, prediction in enumerate(predictions):
+        prediction = [p for p in prediction if p[0][0] == 'T']
+        for k, prediction_rank in enumerate(prediction):
+            if ground_truths[i] == prediction_rank[0]:
+                print("{:>0} {:>8} {:>8} {:<8}".format(i+1, ground_truths[i], k+1, prediction_rank[0]))
+                mrr_score += 1/(k+1)
+    mrr_score = mrr_score/len(predictions)
+    print('\nMRR Score:', mrr_score)
 
 if __name__ == '__main__':
-    main()
+    get_mrr_score()

@@ -1,9 +1,9 @@
 #!/bin/bash
 
-python evaluate_transe_inductive.py --entity_embeddings files_for_inductive/EntityEmb_dummy.npy \
-		--relation_embeddings files_for_inductive/RelEmb_dummy.npy \
+python evaluate_transe_inductive.py --entity_embeddings files_for_inductive_cite/EntityEmb_cite.npy \
+		--relation_embeddings files_for_inductive_cite/RelEmb_cite.npy \
 		--dim 768 \
-		--entity2id files_for_inductive/entity2id_dummy.json \
-		--relation2id files_for_inductive/relation2id.json \
-		--dataset files_for_inductive/wikidata5m_test_dummy.txt
+		--entity2id files_for_inductive_cite/entity2id.json \
+		--relation2id files_for_inductive_cite/relation2id.json \
+		--dataset files_for_inductive_cite/citation_triples_test.txt
 
