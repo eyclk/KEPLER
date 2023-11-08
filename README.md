@@ -213,14 +213,15 @@ First, install the `graphvite` package in[`./graphvite`](/graphvite) following i
 
 ------------------------------------------
 
-**For citation prediction task:** Acquire the necessary Qdesc txt file with [`convert_alt_limit.py`](examples/KEPLER/Pretrain/convert_alt_limit.py). The arguments are as following:
+**For citation prediction task:** Acquire the necessary Qdesc txt file with **--RENAME--** [`convert_alt_limit.py`](examples/KEPLER/Pretrain/convert_alt_limit.py). This code also creates the necessary entity2id.json and relation2id.json files inside the specified output folder. These json files are necessary for the following steps. The arguments are as following:
 
 * `--text`: The corpus file from the dataset. For our work, it should contain contexts (heads) and references (tails).
-* `--train`: The training split of the context-reference triples.
-* `--valid`: The validation split of the context-reference triples.
-* `--converted_text`: The output txt file that contains the converted data from the corpus.
+* `--train`: The training split of the context-reference triplets.
+* `--valid`: The validation split of the context-reference triplets.
+* `--converted_text`: The output txt file that contains the converted data from the corpus. This output files is generally named as "Qdesc.txt".
 * `--converted_train`: The output file that contains the converted training split.
 * `--converted_valid`: The output file that contains the converted validation split.
+* `--2id_folder_path`: The path to the folder that will contain entity2id and relation2id files.
 
 **For citation prediction task:** Acquire the necessary Qdesc bpe file with [`multiprocessing_bpe_encoder.py`](examples/roberta/multiprocessing_bpe_encoder.py). The arguments are as following:
 
@@ -231,11 +232,11 @@ First, install the `graphvite` package in[`./graphvite`](/graphvite) following i
 * `--keep-empty`: Use this parameter directly without any input.
 * `--workers`: Use this parameter to set the number of workers while the code is working. We have observed that this works with 10 as input.
 
-**For citation prediction task:** Acquire the entity2id.json and relation2id.json files with [`convert_for_2id_files.py`](examples/KEPLER/Pretrain/convert_for_2id_files.py). This is almost the same code as the other convert one. However, this also created the 2id files at the end. Converted_text file from this code is incorrrect. So, make sure to rename it something different, so that it does not overwrite the correct one. This code always writes out its 2id files to a folder called "2id_files". So, make sure to create a new folder with this name. The arguments are as following:
+**--DELETE-- For citation prediction task:** Acquire the entity2id.json and relation2id.json files with [`convert_for_2id_files.py`](examples/KEPLER/Pretrain/convert_for_2id_files.py). This is almost the same code as the other convert one. However, this also creates the 2id files at the end. Converted_text file from this code is incorrrect. So, make sure to rename it something different, so that it does not overwrite the correct one. This code always writes out its 2id files to a folder called "2id_files". So, make sure to create a new folder with this name. The arguments are as following:
 
 * `--text`: The corpus file from the dataset. For our work, it should contain contexts (heads) and references (tails).
-* `--train`: The training split of the context-reference triples.
-* `--valid`: The validation split of the context-reference triples.
+* `--train`: The training split of the context-reference triplets.
+* `--valid`: The validation split of the context-reference triplets.
 * `--converted_text`: The output txt file that contains the converted data from the corpus. --> Name it different from before. This output file is unimportant.
 * `--converted_train`: The output file that contains the converted training split. --> Name it different from before. This output file is unimportant.
 * `--converted_valid`: The output file that contains the converted validation split. --> Name it different from before. This output file is unimportant.
